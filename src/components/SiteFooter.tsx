@@ -1,6 +1,6 @@
 import { useId, useState, type ReactNode } from "react";
 import { Link } from "react-router";
-import { ArrowRight, ChevronDown, Mail, Phone } from "lucide-react";
+import { ArrowRight, ChevronDown, Mail, MessageCircle } from "lucide-react";
 import { BRAND } from "../config";
 import { Brand } from "./Brand";
 import { KenteBand } from "./Kente";
@@ -79,9 +79,9 @@ export function SiteFooter({
               {newsletter && !LIVE_BACKEND && <FooterGroup title="New pros in your area" newsletter><JournalSignup /></FooterGroup>}
 
               <div className="footer-contacts mt-6 flex flex-col gap-1.5 text-sm">
-                <a href={`tel:${BRAND.supportPhone.replace(/\s/g, "")}`} className="press -ml-2 inline-flex min-h-11 w-fit items-center gap-2 rounded-lg px-2 font-bold text-ink hover:bg-grout">
-                  <Phone className="size-4 shrink-0 text-ink-faint" aria-hidden />
-                  {BRAND.supportPhone}
+                <a href={`https://wa.me/${BRAND.supportWhatsApp.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="press -ml-2 inline-flex min-h-11 w-fit items-center gap-2 rounded-lg px-2 font-bold text-ink hover:bg-grout">
+                  <MessageCircle className="size-4 shrink-0 text-ink-faint" aria-hidden />
+                  {BRAND.supportWhatsApp}<span className="font-normal text-ink-faint">WhatsApp</span>
                 </a>
                 <a href={`mailto:${BRAND.supportEmail}`} className="press -ml-2 inline-flex min-h-11 w-fit items-center gap-2 rounded-lg px-2 font-bold text-ink hover:bg-grout">
                   <Mail className="size-4 shrink-0 text-ink-faint" aria-hidden />

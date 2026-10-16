@@ -6,8 +6,8 @@ import type { DisputeReason, MomoNetwork, ServiceId } from "./data/types";
  */
 export const BRAND = {
   name: "Siesie",
-  supportPhone: "030 000 0000",
-  supportEmail: "help@siesie.example",
+  supportWhatsApp: "+233 59 263 6296",
+  supportEmail: "kirulabsofficial@gmail.com",
 };
 
 export const SERVICES: Record<ServiceId, { label: string; worker: string; blurb: string; examples: string[] }> = {
