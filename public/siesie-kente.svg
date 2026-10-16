@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="130 32 300 480">
+  <defs>
+    <!-- Same colours and alternating warp/weft blocks as components/Kente.tsx. -->
+    <pattern id="kente" width="192" height="56" patternUnits="userSpaceOnUse" patternTransform="translate(130 32) scale(2)">
+      <rect width="192" height="56" fill="#17130e"/>
+      <rect x="0" y="0" width="3" height="56" fill="#dfa41c"/>
+      <rect x="3" y="0" width="3" height="56" fill="#17130e"/>
+      <rect x="6" y="0" width="3" height="56" fill="#dfa41c"/>
+      <rect x="9" y="0" width="5" height="56" fill="#12704a"/>
+      <rect x="14" y="0" width="3" height="56" fill="#dfa41c"/>
+      <rect x="17" y="0" width="3" height="56" fill="#17130e"/>
+      <rect x="20" y="0" width="6" height="56" fill="#dfa41c"/>
+      <rect x="26" y="0" width="3" height="56" fill="#17130e"/>
+      <rect x="29" y="0" width="3" height="56" fill="#dfa41c"/>
+      <rect x="32" y="0" width="5" height="56" fill="#12704a"/>
+      <rect x="37" y="0" width="3" height="56" fill="#dfa41c"/>
+      <rect x="40" y="0" width="3" height="56" fill="#17130e"/>
+      <rect x="43" y="0" width="3" height="56" fill="#dfa41c"/>
+      <rect x="48" y="0" width="46" height="6" fill="#a81e14"/>
+      <rect x="48" y="6" width="46" height="3" fill="#dfa41c"/>
+      <rect x="48" y="9" width="46" height="8" fill="#17130e"/>
+      <rect x="48" y="17" width="46" height="3" fill="#dfa41c"/>
+      <rect x="48" y="20" width="46" height="8" fill="#a81e14"/>
+      <rect x="48" y="28" width="46" height="3" fill="#dfa41c"/>
+      <rect x="48" y="31" width="46" height="8" fill="#17130e"/>
+      <rect x="48" y="39" width="46" height="3" fill="#dfa41c"/>
+      <rect x="48" y="42" width="46" height="8" fill="#a81e14"/>
+      <rect x="48" y="50" width="46" height="6" fill="#dfa41c"/>
+      <rect x="96" y="0" width="3" height="56" fill="#12704a"/>
+      <rect x="99" y="0" width="3" height="56" fill="#dfa41c"/>
+      <rect x="102" y="0" width="3" height="56" fill="#1e40af"/>
+      <rect x="105" y="0" width="5" height="56" fill="#dfa41c"/>
+      <rect x="110" y="0" width="3" height="56" fill="#1e40af"/>
+      <rect x="113" y="0" width="3" height="56" fill="#dfa41c"/>
+      <rect x="116" y="0" width="6" height="56" fill="#12704a"/>
+      <rect x="122" y="0" width="3" height="56" fill="#dfa41c"/>
+      <rect x="125" y="0" width="3" height="56" fill="#1e40af"/>
+      <rect x="128" y="0" width="5" height="56" fill="#dfa41c"/>
+      <rect x="133" y="0" width="3" height="56" fill="#1e40af"/>
+      <rect x="136" y="0" width="3" height="56" fill="#dfa41c"/>
+      <rect x="139" y="0" width="3" height="56" fill="#12704a"/>
+      <rect x="144" y="0" width="46" height="6" fill="#17130e"/>
+      <rect x="144" y="6" width="46" height="3" fill="#dfa41c"/>
+      <rect x="144" y="9" width="46" height="8" fill="#12704a"/>
+      <rect x="144" y="17" width="46" height="3" fill="#dfa41c"/>
+      <rect x="144" y="20" width="46" height="8" fill="#17130e"/>
+      <rect x="144" y="28" width="46" height="3" fill="#dfa41c"/>
+      <rect x="144" y="31" width="46" height="8" fill="#12704a"/>
+      <rect x="144" y="39" width="46" height="3" fill="#dfa41c"/>
+      <rect x="144" y="42" width="46" height="8" fill="#17130e"/>
+      <rect x="144" y="50" width="46" height="6" fill="#dfa41c"/>
+    </pattern>
+    <mask id="symbol" maskUnits="userSpaceOnUse" x="130" y="32" width="300" height="480">
+      <g fill="white">
+        <ellipse cx="285" cy="75" rx="43" ry="36"/>
+        <path fill-rule="evenodd" d="M284 113C366 113 422 185 422 274S365 421 284 421S136 355 136 274S202 113 284 113ZM284 153C223 153 176 206 176 274S222 382 284 382S382 338 382 274S342 153 284 153Z"/>
+        <path d="M154 110H416L285 271Z"/>
+        <path d="M285 271L416 432H328V504H242V432H154Z"/>
+      </g>
+      <path d="M249 135H319V196H249Z" fill="black"/>
+      <ellipse cx="284" cy="374" rx="43" ry="36.5" fill="black"/>
+    </mask>
+  </defs>
+  <rect x="130" y="32" width="300" height="480" fill="url(#kente)" mask="url(#symbol)"/>
+</svg>

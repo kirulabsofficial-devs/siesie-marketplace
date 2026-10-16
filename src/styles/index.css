@@ -1,0 +1,719 @@
+@import "tailwindcss";
+@import "@fontsource-variable/atkinson-hyperlegible-next/index.css";
+@import "@fontsource-variable/atkinson-hyperlegible-mono/index.css";
+@import "./fonts.css";
+@import "./marketplace.css";
+@import "./home.css";
+@import "./chat.css";
+@import "./premium.css";
+@import "./themes.css";
+
+/*
+  Siesie design tokens.
+
+  Palette comes from glazed ceramic tile: grout, the tile body, cobalt glaze, and an
+  ochre glaze reserved for money that is being held. Released money is celadon,
+  disputed money is kiln red.
+
+  MONEY-COLOUR RULE - ochre/amber means "funds are held in escrow" and nothing else.
+  Never use it for promos, badges or decoration; the escrow state has to stay readable
+  at a glance on every screen.
+*/
+@theme {
+  /* Surfaces */
+  --color-grout: #f1f5f9;
+  --color-grout-deep: #cbd5e1;
+  --color-tile: #ffffff;
+  --color-tile-dim: #f8fafc;
+  --color-canvas: #f7f9fa;
+
+  /*
+    Ink ramp. Every step is a TEXT colour and every step clears 4.5:1 on white,
+    on --color-canvas and on --color-grout, which are the three surfaces body
+    copy ever lands on. ink-faint is the floor (5.09 / 4.79 / 4.65) - nothing
+    lighter than this may carry words.
+    For genuinely non-text marks (inactive stars, dashed slots, dividers) use
+    --color-grout-deep instead of reaching for a lighter ink.
+  */
+  --color-ink: #172f42;
+  --color-ink-mid: #334155;
+  --color-ink-soft: #4f5d70;
+  --color-ink-faint: #656f7d;
+
+  /* Brand - cobalt */
+  --color-cobalt: #244d68;
+  --color-cobalt-bright: #244d68;
+  --color-cobalt-lift: #6287a3;
+  --color-cobalt-wash: #edf3f6;
+  --color-cobalt-edge: #d6e2e9;
+  --color-cobalt-deep: #142e43;
+
+  /* Secondary - teal */
+  --color-teal-accent: #0d9488;
+  --color-teal-wash: #f0fdfa;
+
+  /* Money states */
+  --color-ochre: #f59e0b;
+  --color-ochre-deep: #b45309;
+  --color-ochre-wash: #fef3c7;
+  --color-celadon: #10b981;
+  --color-celadon-wash: #ecfdf5;
+  --color-kiln: #ef4444;
+  /* kiln itself is only 3.76:1 on white, so red *text* uses kiln-deep. */
+  --color-kiln-deep: #b91c1c;
+  --color-kiln-wash: #fef2f2;
+
+  /*
+    Bricolage Grotesque carries the headings and body copy, served locally.
+    Atkinson supplies fallback glyphs; Atkinson Mono keeps figures easy to compare.
+  */
+  --font-display: "Bricolage Grotesque", "Atkinson Hyperlegible Next Variable", system-ui, sans-serif;
+  --font-sans: "Bricolage Grotesque", "Atkinson Hyperlegible Next Variable", system-ui, sans-serif;
+  --font-mono: "Atkinson Hyperlegible Mono Variable", ui-monospace, monospace;
+
+  /* Radii - one scale, used everywhere */
+  --radius-tile: 12px;
+  --radius-card: 16px;
+  --radius-sheet: 22px;
+  --radius-pill: 9999px;
+
+  /* Elevation - five steps, low to high. Blue-tinted so shadows sit in the palette. */
+  --shadow-flush: 0 1px 2px -1px rgb(15 23 42 / 0.06);
+  --shadow-tile: 0 1px 2px rgb(15 23 42 / 0.04), 0 4px 12px -4px rgb(15 23 42 / 0.08);
+  --shadow-card: 0 2px 4px -2px rgb(15 23 42 / 0.05), 0 12px 28px -12px rgb(15 23 42 / 0.16);
+  --shadow-lift: 0 4px 8px -4px rgb(15 23 42 / 0.08), 0 24px 48px -20px rgb(15 23 42 / 0.28);
+  --shadow-dock: 0 8px 16px -8px rgb(15 23 42 / 0.12), 0 24px 48px -16px rgb(15 23 42 / 0.26);
+  --shadow-cobalt: 0 3px 8px -3px rgb(20 46 67 / 0.2);
+
+  /* Motion - duration by travel distance, not by taste */
+  --dur-tap: 120ms;
+  --dur-quick: 180ms;
+  --dur-move: 280ms;
+  --dur-enter: 420ms;
+  --dur-sheet: 560ms;
+
+  --ease-set: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.44, 1);
+  --ease-swift: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-optical-sizing: auto;
+    font-size: 1rem;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  /* Focus is never removed, only restyled. */
+  :focus-visible {
+    outline: 3px solid var(--color-cobalt-bright);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  .on-cobalt :focus-visible {
+    outline-color: #fff;
+  }
+
+  ::selection {
+    background: var(--color-cobalt-edge);
+    color: var(--color-cobalt-deep);
+  }
+
+  input,
+  textarea,
+  select,
+  button {
+    font: inherit;
+    color: inherit;
+  }
+
+  /* Anything that acts like a control should say so on desktop. */
+  button:not(:disabled),
+  summary,
+  label[for] {
+    cursor: pointer;
+  }
+
+  /* Reserve the box before the bytes land so cards do not jump (CLS). */
+  img {
+    background-color: var(--color-grout);
+  }
+}
+
+@layer components {
+  /* -- Type ----------------------------------------------------------- */
+
+  /* Two display weights, nothing in between - 800 shouts, 600 states.
+     font-optical-sizing lets the opsz axis follow the rendered size, so a hero
+     at 56px gets tight apertures and a 14px label gets open ones. */
+  .display {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: -0.022em;
+    line-height: 0.98;
+  }
+  .display-narrow {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: -0.014em;
+    line-height: 1.1;
+  }
+  .figure {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+  /* Small all-caps label above a section heading. */
+  .eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+  /* Keeps short headings from dropping a single orphan word. */
+  .balance {
+    text-wrap: balance;
+  }
+
+  /* -- Surfaces ------------------------------------------------------- */
+
+  /* A tiled wall: panels butt together, container colour shows through as grout. */
+  .tiled {
+    display: grid;
+    gap: 3px;
+    background: var(--color-grout-deep);
+    border: 3px solid var(--color-grout-deep);
+    border-radius: calc(var(--radius-tile) + 3px);
+    overflow: hidden;
+  }
+  .tiled > * {
+    background: var(--color-tile);
+  }
+
+  /*
+    Hero field. Depth comes from two wide radial gradients over the cobalt base
+    - brighter toward the top right, deeper navy toward the bottom left - so the
+    surface has a light direction without any pattern sitting on top of the type.
+  */
+  .hero-cobalt {
+    background-color: var(--color-cobalt);
+    background-image:
+      radial-gradient(110% 75% at 82% -5%, rgb(59 130 246 / 0.5), transparent 62%),
+      radial-gradient(85% 65% at 5% 105%, rgb(23 37 84 / 0.55), transparent 70%);
+  }
+
+  .glass-dock {
+    background: rgb(255 255 255 / 0.82);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgb(255 255 255 / 0.7);
+    box-shadow: var(--shadow-dock);
+  }
+  @supports not (backdrop-filter: blur(1px)) {
+    .glass-dock {
+      background: rgb(255 255 255 / 0.97);
+    }
+  }
+
+  .glass-card {
+    background: rgb(255 255 255 / 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgb(226 232 240 / 0.8);
+    box-shadow: var(--shadow-tile);
+  }
+
+  /* Hairline that reads on both white and near-white surfaces. */
+  .hairline {
+    box-shadow: inset 0 0 0 1px rgb(15 23 42 / 0.06);
+  }
+
+  /* -- Forms ---------------------------------------------------------- */
+
+  .field {
+    width: 100%;
+    min-height: 48px;
+    padding: 0.75rem 1rem;
+    background: var(--color-tile);
+    border: 1.5px solid var(--color-grout-deep);
+    border-radius: 14px;
+    transition:
+      border-color var(--dur-quick) var(--ease-swift),
+      box-shadow var(--dur-quick) var(--ease-swift);
+  }
+  .field:hover {
+    border-color: var(--color-ink-faint);
+  }
+  .field:focus-visible,
+  .field:focus {
+    outline: none;
+    border-color: var(--color-cobalt-bright);
+    box-shadow: 0 0 0 4px var(--color-cobalt-wash);
+  }
+  .field[aria-invalid="true"] {
+    border-color: var(--color-kiln);
+  }
+  .field[aria-invalid="true"]:focus {
+    box-shadow: 0 0 0 4px var(--color-kiln-wash);
+  }
+  textarea.field {
+    min-height: 120px;
+    resize: vertical;
+  }
+
+  /* -- Utilities ------------------------------------------------------ */
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Horizontal rails snap to each card. */
+  .rail {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 1rem;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .rail > * {
+    scroll-snap-align: start;
+    flex: none;
+  }
+
+  /*
+    Extends a small control's touch region to 44px without changing how big it
+    looks or nudging the layout — for icon buttons that have to stay visually
+    light, like the heart on a search card.
+  */
+  .tap-target {
+    position: relative;
+  }
+  .tap-target::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
+
+  /* Safe-area helpers for the fixed dock and CTA bars. */
+  .pb-safe {
+    padding-bottom: max(env(safe-area-inset-bottom), 0px);
+  }
+  .bottom-safe {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 0.75rem);
+  }
+  /* Scroll clearance so content never ends underneath the dock. */
+  .dock-clearance {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 6.5rem);
+  }
+}
+
+/* == Motion system ====================================================
+   Three families only:
+     1. reveal  - content arriving on scroll / mount (IntersectionObserver)
+     2. press   - direct manipulation feedback
+     3. ambient - slow, decorative, never carries meaning
+   Everything is transform/opacity so it stays on the compositor.
+   ==================================================================== */
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes reveal-pop {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes reveal-right {
+  from {
+    opacity: 0;
+    transform: translate3d(-18px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sheet-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 28px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes shimmer {
+  to {
+    background-position-x: -200%;
+  }
+}
+
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -9px, 0);
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    opacity: 0.55;
+    transform: scale(0.85);
+  }
+  70% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+@keyframes pulse-subtle {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+@keyframes sweep {
+  from {
+    transform: translate3d(-120%, 0, 0) skewX(-18deg);
+  }
+  to {
+    transform: translate3d(320%, 0, 0) skewX(-18deg);
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes count-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes drawer-down {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -10px, 0);
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* -- 1. Reveal -------------------------------------------------------- */
+
+/*
+  Fill mode is `backwards`, never `forwards`/`both`.
+
+  A finished forwards animation leaves the element holding the last keyframe's
+  transform — an *identity* matrix, not `none`. Any non-none transform makes
+  that element the containing block for `position: fixed` descendants, so a
+  sticky CTA inside an animated card anchors to the card instead of the
+  viewport. `backwards` still holds the from-state through any delay, then gets
+  out of the way and lets the base style apply.
+*/
+.animate-rise {
+  animation: rise var(--dur-enter) var(--ease-set) backwards;
+}
+.animate-sheet {
+  animation: sheet-up var(--dur-sheet) var(--ease-set) backwards;
+}
+.animate-fade {
+  animation: fade-in var(--dur-move) var(--ease-swift) backwards;
+}
+.animate-pop {
+  animation: reveal-pop var(--dur-move) var(--ease-spring) backwards;
+}
+.animate-count {
+  animation: count-in var(--dur-move) var(--ease-set) backwards;
+}
+/* Whole-route transition. Keyed on pathname so a query-string change
+   (typing in search) does not restart it. */
+.animate-page {
+  animation: page-in var(--dur-move) var(--ease-set) backwards;
+}
+.animate-drawer {
+  animation: drawer-down var(--dur-move) var(--ease-set) backwards;
+}
+/* Horizontal meter fill. Grows from the left edge on reveal. */
+.animate-bar {
+  transform-origin: left center;
+  animation: bar-grow var(--dur-sheet) var(--ease-set) backwards;
+}
+
+/*
+  Scroll reveal. Elements carry data-reveal and start hidden; useReveal() adds
+  .is-revealed when they cross into view. --i is the item index in its group,
+  so one declaration gives a whole grid a staggered wave.
+*/
+[data-reveal] {
+  opacity: 0;
+  will-change: opacity, transform;
+}
+[data-reveal].is-revealed {
+  /* The revealed base state is visible in its own right, so the animation only
+     needs `backwards` to hold the hidden state through its stagger delay. It
+     then ends leaving no transform behind — see the note on fill modes below. */
+  opacity: 1;
+  animation: reveal-up var(--dur-enter) var(--ease-set) backwards;
+  animation-delay: calc(var(--i, 0) * 55ms + var(--reveal-delay, 0ms));
+  will-change: auto;
+}
+[data-reveal="pop"].is-revealed {
+  animation-name: reveal-pop;
+  animation-timing-function: var(--ease-spring);
+}
+[data-reveal="right"].is-revealed {
+  animation-name: reveal-right;
+}
+[data-reveal="fade"].is-revealed {
+  animation-name: fade-in;
+}
+
+/* Fallback when IntersectionObserver is unavailable: show everything. */
+.no-reveal [data-reveal] {
+  opacity: 1;
+  animation: none;
+}
+
+/* -- 2. Press and hover feedback -------------------------------------- */
+
+/*
+  Press states change transform only - never margin, padding or size - so the
+  surrounding layout cannot shift while a finger is down.
+*/
+.press {
+  transition:
+    transform var(--dur-tap) var(--ease-swift),
+    box-shadow var(--dur-quick) var(--ease-swift),
+    background-color var(--dur-quick) var(--ease-swift),
+    border-color var(--dur-quick) var(--ease-swift),
+    color var(--dur-quick) var(--ease-swift);
+}
+.press:active {
+  transform: scale(0.97);
+}
+.press-sm:active {
+  transform: scale(0.985);
+}
+
+.card-press {
+  transition:
+    transform var(--dur-move) var(--ease-set),
+    box-shadow var(--dur-move) var(--ease-set),
+    border-color var(--dur-move) var(--ease-set);
+}
+@media (hover: hover) {
+  .card-press:hover {
+    transform: translate3d(0, -4px, 0);
+    box-shadow: var(--shadow-lift);
+  }
+}
+.card-press:active {
+  transform: scale(0.985);
+  transition-duration: var(--dur-tap);
+}
+
+/* Light sweep across a filled button on hover. Decorative only. */
+.sheen {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.sheen::after {
+  content: "";
+  position: absolute;
+  inset-block: -50%;
+  inset-inline-start: 0;
+  width: 35%;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.32), transparent);
+  transform: translate3d(-120%, 0, 0) skewX(-18deg);
+  pointer-events: none;
+  z-index: -1;
+}
+@media (hover: hover) {
+  .sheen:hover::after {
+    animation: sweep 720ms var(--ease-swift);
+  }
+}
+
+/* Image inside a card grows a little on card hover. */
+.zoom-child {
+  transition: transform var(--dur-sheet) var(--ease-set);
+}
+@media (hover: hover) {
+  .zoom-parent:hover .zoom-child {
+    transform: scale(1.06);
+  }
+}
+
+/* -- 3. Ambient ------------------------------------------------------- */
+
+.animate-float {
+  animation: float-slow 6s ease-in-out infinite;
+}
+.animate-pulse-subtle {
+  animation: pulse-subtle 2.5s ease-in-out infinite;
+}
+/* Expanding ring behind a live/attention dot. */
+.animate-ring::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: currentColor;
+  animation: pulse-ring 2s var(--ease-set) infinite;
+}
+.animate-marquee {
+  animation: marquee 32s linear infinite;
+}
+.animate-marquee:hover,
+.animate-marquee:focus-within {
+  animation-play-state: paused;
+}
+
+/* Skeleton shimmer for loading placeholders. */
+.skeleton {
+  background: linear-gradient(90deg, var(--color-grout) 38%, #e2e8f0 50%, var(--color-grout) 62%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+/* -- Reduced motion --------------------------------------------------- */
+/*
+  Honour the OS setting: kill decorative motion, keep everything legible and in
+  its final state. Reveals must still end visible or content disappears.
+*/
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  [data-reveal] {
+    opacity: 1 !important;
+    animation: none !important;
+    transform: none !important;
+  }
+  .animate-float,
+  .animate-marquee,
+  .animate-pulse-subtle,
+  .skeleton {
+    animation: none !important;
+  }
+  .card-press:hover,
+  .press:active,
+  .card-press:active {
+    transform: none !important;
+  }
+}

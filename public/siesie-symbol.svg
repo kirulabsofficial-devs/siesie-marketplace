@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="130 32 300 480" fill="#244d68">
+  <defs><mask id="cutouts"><rect x="130" y="32" width="300" height="480" fill="white"/><path d="M249 135H319V196H249Z" fill="black"/><ellipse cx="284" cy="374" rx="43" ry="36.5" fill="black"/></mask></defs>
+  <g mask="url(#cutouts)">
+  <ellipse cx="285" cy="75" rx="43" ry="36"/>
+  <path fill-rule="evenodd" d="M284 113C366 113 422 185 422 274S365 421 284 421S136 355 136 274S202 113 284 113ZM284 153C223 153 176 206 176 274S222 382 284 382S382 338 382 274S342 153 284 153Z"/>
+  <path d="M154 110H416L285 271Z"/>
+  <path d="M285 271L416 432H328V504H242V432H154Z"/>
+  </g>
+</svg>

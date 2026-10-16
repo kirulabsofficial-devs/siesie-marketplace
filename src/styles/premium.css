@@ -1,0 +1,106 @@
+/* Siesie: midnight blue, porcelain, ice blue and a restrained celadon status accent.
+   Dela remains the signature; Bricolage headings pair with readable Atkinson body copy. */
+.prototype-bar, .public-shell .prototype-bar { background: #f5f8fa; color: #526879; border-bottom: 1px solid #e3ebf0; }
+.prototype-bar-inner { max-width: 1360px; padding: 0 24px; min-height: 46px; margin: auto; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.prototype-caption { display: flex; align-items: center; gap: 9px; font-size: 11px; font-weight: 650; }
+.prototype-dot { display: inline-block; height: 6px; width: 6px; flex: 0 0 auto; border-radius: 50%; background: #4d806f; }
+.prototype-caption-detail { margin-left: 12px; padding-left: 20px; border-left: 1px solid #d5e0e7; color: #65798a; font-weight: 400; }
+.prototype-actions { display: flex; align-items: center; gap: 6px; }
+.prototype-view-label { font-size: 10px; margin-right: 10px; }
+.prototype-actions button { min-height: 44px; padding: 0 13px; display: inline-flex; align-items: center; gap: 9px; border-radius: 6px; color: #244d68; font-size: 11px; font-weight: 700; transition: background .18s; }
+.prototype-actions button:hover { background: #e5eef4; }
+.prototype-actions button:disabled { opacity: .5; cursor: wait; }
+.prototype-actions .prototype-icon { width: 40px; padding: 0; justify-content: center; }
+.prototype-connection { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 12px 24px; font-size: 13px; background: #fff2f0; color: #943d32; }
+.prototype-connection button { text-decoration: underline; min-height: 44px; }
+.prototype-dialog-intro { margin: 6px 0 22px; color: #627787; font-size: 14px; }
+.prototype-role-list { display: grid; gap: 12px; }
+.prototype-role-list > button { display: flex; align-items: center; gap: 17px; text-align: left; padding: 20px; border: 1px solid #dce6ed; border-radius: 14px; background: #f9fbfc; transition: background .18s, border-color .18s; }
+.prototype-role-list > button:hover { background: #edf3f7; border-color: #8aa6b8; }
+.prototype-role-list > button > span { flex: 1; }
+.prototype-role-list strong { display: block; font-size: 17px; }
+.prototype-role-list small { color: #647b8a; font-weight: 400; font-size: 13px; }
+.prototype-role-list strong + span { display: block; margin-top: 5px; font-size: 12px; line-height: 1.6; color: #627787; }
+.prototype-dialog-note { margin-top: 22px; font-size: 12px; color: #627787; line-height: 1.7; }
+.session-loading { min-height: 50vh; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 20px; padding: 40px; color: #526879; }
+.chat-local-note { display: flex; align-items: center; gap: 9px; }
+.chat-thread-header { background: #fff; padding-block: 22px; }
+.chat-list-heading h1 { letter-spacing: -.045em; text-transform: none; font-size: 34px; }
+.chat-welcome h2 { text-transform: none; font-size: clamp(28px, 2.8vw, 40px); line-height: 1.14; }
+.chat-log { background: #f3f7f9; }
+.chat-message { box-shadow: 0 2px 4px #19364b04; }
+.chat-message.outgoing { background: #20455e; border-color: #20455e; }
+.chat-search:focus-within, .chat-input-row textarea:focus { border-color: #7c9bb0; background: #fff; }
+.messages-page { box-shadow: 0 16px 50px -25px #173c5524; }
+.public-header > div { max-width: 1360px; }
+.public-header .lucide, .worker-header .lucide, .prototype-bar .lucide, .glass-dock .lucide { stroke-width: 1.6; }
+.service-rail { position: relative; display: flex; align-items: stretch; gap: 12px; width: 100%; overflow-x: auto; overscroll-behavior-x: contain; border-bottom: 1px solid #e3e9ed; scrollbar-width: thin; scrollbar-color: #c9d9e3 transparent; scroll-snap-type: x proximity; }
+.service-rail-link { position: relative; display: flex; flex: 1 0 104px; flex-direction: column; align-items: center; justify-content: center; gap: 13px; min-height: 105px; padding: 18px 10px 21px; color: #586572; font-size: 12px; white-space: nowrap; scroll-snap-align: center; transition: color .18s, background .18s; }
+.service-rail-link::after { content: ""; position: absolute; bottom: 0; height: 2px; width: calc(100% - 28px); background: currentColor; transform: scaleX(0); transition: transform .18s; }
+.service-rail-link:hover { color: #087f9f; background: #f6fafc; }
+.service-rail-link[aria-current="page"] { color: #087f9f; font-weight: 650; }
+.service-rail-link[aria-current="page"]::after { transform: scaleX(1); }
+.service-rail-link:focus-visible { outline-offset: -4px; }
+.discovery-page > .service-rail { margin: 8px 0 25px; }
+.service-icon { display: inline-block; vertical-align: middle; flex-shrink: 0; }
+@media (min-width: 1101px) {
+  .market-section { width: min(100% - 80px, 1280px); }
+  .public-header > div { min-height: 88px; }
+  .home-hero { padding-top: 35px; }
+  .hero-search-row { margin-bottom: 32px; }
+  .home-search { padding: 8px; border-radius: 16px; box-shadow: 0 4px 16px #173c5504; }
+  .home-search-service { padding-block: 10px; }
+  .home-search-service input { font-size: 14px; }
+  .search-label { font-size: 11px; }
+  .home-search button { min-height: 56px; padding-inline: 27px; border-radius: 10px; }
+  .hero-stage { padding: 54px 54px 0; border-radius: 24px; box-shadow: 0 18px 45px -30px #142e4370; }
+  .hero-copy h1 { font-size: clamp(66px, 6.05vw, 86px); letter-spacing: -.035em; line-height: .99; }
+  .hero-eyebrow { font-size: 10px; margin-bottom: 28px; }
+  .hero-intro { font-family: "Atkinson Hyperlegible Next Variable", sans-serif; font-size: 16px; max-width: 380px; margin-top: 27px; line-height: 1.65; }
+  .hero-cta { margin-top: 31px; min-height: 54px; padding-inline: 24px; font-size: 13px; border-radius: 10px; }
+  .hero-visual { min-height: 427px; }
+  .hero-bottom-line { padding-block: 19px; font-size: 9px; }
+  .category-tile { border-radius: 14px; padding: 24px 20px; }
+  .pro-card { border-radius: 18px; }
+}
+@media (max-width: 850px) {
+  .prototype-caption-detail { display: none; }
+  .prototype-bar-inner { padding-inline: 20px; }
+  .prototype-view-label { margin-right: 2px; }
+}
+@media (max-width: 600px) {
+  .prototype-bar-inner { padding-inline: 15px; gap: 0; }
+  .prototype-caption { font-size: 10px; gap: 6px; }
+  .prototype-view-label { font-size: 9px; }
+  .prototype-actions { gap: 1px; }
+  .prototype-actions button { padding-inline: 8px; font-size: 10px; gap: 3px; }
+  .prototype-actions button > svg { width: 11px; }
+  .prototype-bar-inner:has(.prototype-view-label) > .prototype-caption { display: none; }
+  .prototype-bar-inner:has(.prototype-view-label) { justify-content: center; }
+  .home-hero { padding-top: 20px; }
+  .hero-stage { grid-template-columns: 1.05fr .95fr; gap: 0 10px; padding: 26px 20px 0; border-radius: 16px; }
+  .hero-copy h1 { font-size: clamp(30px, 9.7vw, 46px); line-height: .98; letter-spacing: -.025em; }
+  .hero-eyebrow { font-size: 6.5px; margin-bottom: 16px; letter-spacing: .06em; white-space: nowrap; }
+  .hero-intro { max-width: 100%; font-size: 11px; line-height: 1.65; margin-top: 15px; }
+  .hero-cta { font-size: 10px; min-height: 44px; padding-inline: 14px; margin-top: 17px; border-radius: 7px; }
+  .hero-visual { min-height: 245px; width: 100%; margin: 4px 0 0; }
+  .hero-photo-frame { top: 2%; left: 3%; width: 97%; height: 86%; border-width: 3px; border-radius: 100px 100px 7px 7px; }
+  .hero-detail-photo { width: 58%; left: -4px; bottom: 9px; height: 42%; transform: rotate(-8deg); }
+  .hero-bottom-line { margin-top: 18px; font-size: 8px; }
+  .service-rail { gap: 5px; }
+  .service-rail-link { flex-basis: 89px; min-height: 88px; gap: 10px; padding: 15px 9px 18px; font-size: 11px; }
+  .service-rail-link > svg { width: 25px; height: 25px; }
+  .chat-thread-header { padding-block: 15px; }
+  .chat-list-heading h1 { font-size: 32px; }
+}
+@media (max-width: 359px) {
+  .hero-stage { padding-inline: 16px; gap: 0 7px; }
+  .hero-intro { font-size: 10px; }
+  .hero-eyebrow { font-size: 6px; }
+  .hero-visual { min-height: 232px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hero-copy { animation: siesie-arrive .65s both; }
+  .hero-visual { animation: siesie-arrive .8s .08s both; }
+  @keyframes siesie-arrive { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+}

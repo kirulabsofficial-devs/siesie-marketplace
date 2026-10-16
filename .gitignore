@@ -1,0 +1,25 @@
+node_modules/
+dist/
+vercel-dist/
+live-dist/
+supabase/.temp/
+Siesie-Vercel.zip
+Siesie-Live-Vercel.zip
+.env
+.env.*
+!.env.example
+*.log
+__pycache__/
+docs/qa/
+data/
+test-results/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+
+# Client-facing screenshot exports
+client-screenshots/
+Siesie-screens.zip
+
+# Launch video output (includes third-party music)
+brag-output/

@@ -1,0 +1,4 @@
+project_id = "siesie-marketplace"
+
+[functions.call-ice]
+verify_jwt = true

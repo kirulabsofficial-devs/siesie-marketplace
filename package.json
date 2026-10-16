@@ -1,0 +1,49 @@
+{
+  "name": "siesie-marketplace",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Siesie home-services prototype with a local server-backed messaging test slice.",
+  "type": "module",
+  "scripts": {
+    "dev": "node server/index.mjs --dev --test-mode",
+    "dev:live": "vite --mode live --port 5178",
+    "build:live": "tsc --noEmit && vite build --mode live --outDir live-dist && node scripts/prepare-vercel-drop.mjs live-dist",
+    "build": "tsc --noEmit && vite build",
+    "build:vercel": "tsc --noEmit && vite build --mode prototype --outDir vercel-dist && node scripts/prepare-vercel-drop.mjs",
+    "preview": "node server/index.mjs --test-mode",
+    "typecheck": "tsc --noEmit",
+    "test:api": "node --test tests/api.test.mjs",
+    "test:supabase": "node tests/supabase-contract.mjs",
+    "test:live": "node tests/live-browser.mjs",
+    "supabase:prepare": "node scripts/prepare-supabase-install.mjs",
+    "test:e2e": "npm run build && node tests/e2e.mjs",
+    "test:vercel": "npm run build:vercel && node tests/vercel-prototype.mjs",
+    "test": "npm run test:api && npm run test:e2e",
+    "db:seed-fixture": "node scripts/seed-fixture.mjs",
+    "test:marketplace": "node tests/marketplace-regression.mjs"
+  },
+  "dependencies": {
+    "@fontsource-variable/archivo": "5.3.0",
+    "@fontsource-variable/atkinson-hyperlegible-mono": "5.3.0",
+    "@fontsource-variable/atkinson-hyperlegible-next": "5.3.0",
+    "@supabase/supabase-js": "^2.116.0",
+    "lucide-react": "0.577.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-router": "7.18.3"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@tailwindcss/vite": "4.3.3",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "@vitejs/plugin-react": "5.2.0",
+    "playwright": "^1.63.0",
+    "tailwindcss": "4.3.3",
+    "typescript": "5.9.3",
+    "vite": "7.3.6"
+  },
+  "engines": {
+    "node": ">=24.18.0"
+  }
+}

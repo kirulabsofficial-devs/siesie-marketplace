@@ -1,0 +1,268 @@
+{
+  "users": [
+    {
+      "id": "c_ama",
+      "name": "Ama Owusu",
+      "phone": "0244123456",
+      "area": "East Legon",
+      "joinedAt": "2026-05-04T00:00:00.000Z",
+      "role": "customer"
+    },
+    {
+      "id": "c_kojo",
+      "name": "Kojo Danquah",
+      "phone": "0209876543",
+      "area": "Spintex",
+      "joinedAt": "2026-06-23T00:00:00.000Z",
+      "role": "customer"
+    },
+    {
+      "id": "c_esi",
+      "name": "Esi Nyarko",
+      "phone": "0551239876",
+      "area": "Tema Comm. 25",
+      "joinedAt": "2026-07-23T00:00:00.000Z",
+      "role": "customer"
+    },
+    {
+      "id": "c_fiifi",
+      "name": "Fiifi Mensah",
+      "phone": "0267771234",
+      "area": "Kumasi – Ahodwo",
+      "joinedAt": "2026-03-05T00:00:00.000Z",
+      "role": "customer"
+    },
+    {
+      "id": "c_delali",
+      "name": "Delali Ahiable",
+      "phone": "0501112233",
+      "area": "Adenta",
+      "joinedAt": "2026-05-24T00:00:00.000Z",
+      "role": "customer"
+    },
+    {
+      "id": "w_kwame",
+      "role": "worker",
+      "name": "Kwame Asante",
+      "phone": "0245550101",
+      "area": "Spintex",
+      "services": [
+        "tiling",
+        "maintenance"
+      ],
+      "verified": true,
+      "joinedAt": "2025-11-25T00:00:00.000Z"
+    },
+    {
+      "id": "w_abena",
+      "role": "worker",
+      "name": "Abena Mensah",
+      "phone": "0205550102",
+      "area": "East Legon",
+      "services": [
+        "cleaning"
+      ],
+      "verified": true,
+      "joinedAt": "2026-01-14T00:00:00.000Z"
+    },
+    {
+      "id": "w_yaw",
+      "role": "worker",
+      "name": "Yaw Boateng",
+      "phone": "0545550103",
+      "area": "Madina",
+      "services": [
+        "maintenance"
+      ],
+      "verified": true,
+      "joinedAt": "2026-03-25T00:00:00.000Z"
+    },
+    {
+      "id": "w_efua",
+      "role": "worker",
+      "name": "Efua Quansah",
+      "phone": "0265550104",
+      "area": "Tema Comm. 25",
+      "services": [
+        "cleaning"
+      ],
+      "verified": true,
+      "joinedAt": "2026-04-14T00:00:00.000Z"
+    },
+    {
+      "id": "w_kofi",
+      "role": "worker",
+      "name": "Kofi Agyeman",
+      "phone": "0245550105",
+      "area": "Kumasi – Ahodwo",
+      "services": [
+        "tiling"
+      ],
+      "verified": true,
+      "joinedAt": "2026-02-23T00:00:00.000Z"
+    },
+    {
+      "id": "w_selorm",
+      "role": "worker",
+      "name": "Selorm Agbeko",
+      "phone": "0555550106",
+      "area": "Dansoman",
+      "services": [
+        "tiling"
+      ],
+      "verified": true,
+      "joinedAt": "2026-05-24T00:00:00.000Z"
+    },
+    {
+      "id": "w_akosua",
+      "role": "worker",
+      "name": "Akosua Frimpong",
+      "phone": "0275550107",
+      "area": "Adenta",
+      "services": [
+        "cleaning",
+        "maintenance"
+      ],
+      "verified": true,
+      "joinedAt": "2026-06-13T00:00:00.000Z"
+    },
+    {
+      "id": "w_emmanuel",
+      "role": "worker",
+      "name": "Emmanuel Tetteh",
+      "phone": "0505550108",
+      "area": "Kasoa",
+      "services": [
+        "maintenance"
+      ],
+      "verified": true,
+      "joinedAt": "2026-07-03T00:00:00.000Z"
+    },
+    {
+      "id": "w_nana",
+      "role": "worker",
+      "name": "Nana Owusu-Ansah",
+      "phone": "0245550109",
+      "area": "Haatso",
+      "services": [
+        "tiling"
+      ],
+      "verified": false,
+      "joinedAt": "2026-09-20T04:00:00.000Z"
+    },
+    {
+      "id": "w_mawuli",
+      "role": "worker",
+      "name": "Mawuli Kpodo",
+      "phone": "0205550110",
+      "area": "Weija",
+      "services": [
+        "maintenance"
+      ],
+      "verified": false,
+      "joinedAt": "2026-09-19T00:00:00.000Z"
+    },
+    {
+      "id": "w_rita",
+      "role": "worker",
+      "name": "Rita Addo",
+      "phone": "0565550111",
+      "area": "Osu",
+      "services": [
+        "cleaning"
+      ],
+      "verified": false,
+      "joinedAt": "2026-09-20T19:00:00.000Z"
+    },
+    {
+      "id": "a_adjoa",
+      "name": "Adjoa Sarpong",
+      "phone": "0302000000",
+      "role": "admin",
+      "area": "",
+      "joinedAt": "1970-01-01T00:00:00.000Z"
+    }
+  ],
+  "memberships": [
+    {
+      "customerId": "c_ama",
+      "workerId": "w_kwame"
+    },
+    {
+      "customerId": "c_ama",
+      "workerId": "w_abena"
+    },
+    {
+      "customerId": "c_ama",
+      "workerId": "w_yaw"
+    },
+    {
+      "customerId": "c_ama",
+      "workerId": "w_efua"
+    },
+    {
+      "customerId": "c_kojo",
+      "workerId": "w_kwame"
+    },
+    {
+      "customerId": "c_esi",
+      "workerId": "w_kwame"
+    },
+    {
+      "customerId": "c_fiifi",
+      "workerId": "w_kwame"
+    },
+    {
+      "customerId": "c_delali",
+      "workerId": "w_kwame"
+    },
+    {
+      "customerId": "c_kojo",
+      "workerId": "w_yaw"
+    },
+    {
+      "customerId": "c_esi",
+      "workerId": "w_abena"
+    },
+    {
+      "customerId": "c_fiifi",
+      "workerId": "w_kofi"
+    },
+    {
+      "customerId": "c_delali",
+      "workerId": "w_akosua"
+    },
+    {
+      "customerId": "c_kojo",
+      "workerId": "w_emmanuel"
+    },
+    {
+      "customerId": "c_delali",
+      "workerId": "w_abena"
+    },
+    {
+      "customerId": "c_kojo",
+      "workerId": "w_abena"
+    },
+    {
+      "customerId": "c_delali",
+      "workerId": "w_yaw"
+    },
+    {
+      "customerId": "c_esi",
+      "workerId": "w_efua"
+    },
+    {
+      "customerId": "c_delali",
+      "workerId": "w_selorm"
+    },
+    {
+      "customerId": "c_kojo",
+      "workerId": "w_selorm"
+    },
+    {
+      "customerId": "c_esi",
+      "workerId": "w_emmanuel"
+    }
+  ]
+}
