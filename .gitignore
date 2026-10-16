@@ -11,7 +11,7 @@ Siesie-Live-Vercel.zip
 *.log
 __pycache__/
 docs/qa/
-data/
+/data/
 test-results/
 *.sqlite
 *.sqlite-wal
