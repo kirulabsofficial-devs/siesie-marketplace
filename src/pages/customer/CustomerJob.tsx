@@ -1,14 +1,16 @@
-import { useState } from "react";
-import { Link, useParams } from "react-router";
+import { useEffect, useState } from "react";
+import { Link, useParams, useSearchParams } from "react-router";
 import { ArrowLeft, Phone } from "lucide-react";
 import { BRAND, DISPUTE_REASONS } from "../../config";
-import { cancelRequest, confirmCompletion, findCustomer, findJob, findWorker, leaveReview, openDispute, recordPayment, useDb, workerStats } from "../../data/store";
+import { cancelRequest, confirmCompletion, findCustomer, findJob, findWorker, leaveReview, openDispute, recordPayment, refreshSession, useDb, workerStats } from "../../data/store";
 import { JobMoneyTrack } from "../../components/MoneyTrack";
 import { DisputeDialog, JobDetails, Receipt, ReviewForm, Timeline } from "../../components/JobParts";
 import { PaystackCheckout } from "../../components/PaystackCheckout";
 import { Avatar, Button, Dialog, Gallery, LinkButton, Stars, StatusPill, Tile, VerifiedBadge } from "../../components/ui";
 import { MessageLink } from "../../components/MessageLink";
-import { useAction } from "../../components/Toast";
+import { useAction, useToast } from "../../components/Toast";
+import { LIVE_BACKEND } from "../../data/runtime";
+import { verifyLiveCheckout } from "../../payments/paystack";
 import { date, dateTime, firstName, money, phone, timeLeft, weekday } from "../../lib/format";
 import { useNow, useTitle } from "../../lib/hooks";
 import { NotFound } from "../NotFound";
@@ -26,6 +28,7 @@ export function CustomerJob() {
   const [paying, setPaying] = useState(false);
   const [disputing, setDisputing] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const returning = usePaymentReturn(job?.status);
   useTitle(`${job?.title ?? "Job"} · ${BRAND.name}`);
 
   if (!job || !worker || !customer || job.customerId !== session.userId) return <NotFound />;
@@ -48,7 +51,21 @@ export function CustomerJob() {
       );
       break;
     case "quoted":
-      panel = (
+      panel = returning ? (
+        <ActionPanel title={returning.waiting ? "Waiting for Paystack" : "Confirming your payment"} tone="cobalt">
+          {returning.waiting ? (
+            <>
+              <p>Paystack hasn't confirmed this payment yet. If money left your account, you don't need to pay again. It will show here once Paystack confirms.</p>
+              <div className="mt-5 flex flex-wrap gap-2">
+                <Button onClick={returning.checkAgain}>Check again</Button>
+                <Button variant="ghost" onClick={returning.dismiss}>Back to payment options</Button>
+              </div>
+            </>
+          ) : (
+            <p>Paystack is confirming your payment of <span className="figure font-bold">{money(job.quote!.amount)}</span>. This usually takes a few seconds. If you paid with mobile money, approve the prompt on your phone.</p>
+          )}
+        </ActionPanel>
+      ) : (
         <ActionPanel title={`${w} accepted your request`} tone="cobalt">
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
@@ -107,7 +124,7 @@ export function CustomerJob() {
             Check the work in person before you confirm.{" "}
             {left && (
               <>
-                <span className="figure font-bold">{left}</span> to respond. After that the payout is queued for admin release.
+                <span className="figure font-bold">{left}</span> to respond. {LIVE_BACKEND ? `After that, ${w} is paid automatically.` : "After that the payout is queued for admin release."}
               </>
             )}
           </p>
@@ -161,7 +178,13 @@ export function CustomerJob() {
         <ActionPanel title={r ? "Dispute settled" : "Job closed"}>
           {r && (
             <p className="mb-3">
-              {r.note} {r.toCustomer > 0 && <>You were refunded <span className="figure font-bold">{money(r.toCustomer)}</span>.</>}
+              {r.note}{" "}
+              {r.toCustomer > 0 &&
+                (job.refund?.status && job.refund.status !== "processed" ? (
+                  <>Your refund of <span className="figure font-bold">{money(r.toCustomer)}</span> is on its way to the account you paid from.</>
+                ) : (
+                  <>You were refunded <span className="figure font-bold">{money(r.toCustomer)}</span>.</>
+                ))}
             </p>
           )}
           {!job.customerReview && r?.outcome !== "refund" ? (
@@ -236,6 +259,7 @@ export function CustomerJob() {
       {/* Stays mounted while `paying` so its success step survives the status change. */}
       {(job.status === "quoted" || paying) && (
         <PaystackCheckout
+          jobId={job.id}
           open={paying}
           onClose={() => setPaying(false)}
           amount={amount}
@@ -275,6 +299,44 @@ export function CustomerJob() {
       </Dialog>
     </div>
   );
+}
+
+/**
+ * Live: Paystack sends the customer back to /jobs/:id?payment=<reference>. Ask the server
+ * to verify it and poll until the booking shows as paid, then drop the parameter.
+ */
+function usePaymentReturn(status: string | undefined) {
+  const [params, setParams] = useSearchParams();
+  const toast = useToast();
+  const reference = LIVE_BACKEND ? params.get("payment") : null;
+  const [round, setRound] = useState(0);
+  const [waiting, setWaiting] = useState(false);
+  const dismiss = () => setParams((p) => { p.delete("payment"); return p; }, { replace: true });
+
+  useEffect(() => {
+    if (!reference || !status) return;
+    if (status !== "quoted") {
+      if (status === "in_progress") toast("Payment received. Siesie is holding it until you confirm the work.");
+      dismiss();
+      return;
+    }
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    let tries = 0;
+    setWaiting(false);
+    const check = async () => {
+      tries++;
+      try { await verifyLiveCheckout(reference); } catch { /* the webhook may still deliver it */ }
+      await refreshSession();
+      if (cancelled) return;
+      if (tries >= 12) setWaiting(true);
+      else timer = setTimeout(check, 5000);
+    };
+    timer = setTimeout(check, 0);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [reference, status, round]);
+
+  return reference && status === "quoted" ? { waiting, checkAgain: () => setRound((n) => n + 1), dismiss } : null;
 }
 
 function ActionPanel({ title, children, tone = "plain" }: { title: string; children: React.ReactNode; tone?: "plain" | "cobalt" | "kiln" }) {

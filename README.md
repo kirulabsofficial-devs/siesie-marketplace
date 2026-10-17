@@ -2,7 +2,7 @@
 
 A React prototype for home services in Ghana, with server-backed test sessions and private customer–pro messaging. The app starts on the public **Your home. Sorted.** landing page. Choose **View prototype as customer**, **pro** or **admin** to enter a sample account. Nothing signs in automatically from the old browser-local demo.
 
-**Live Supabase integration:** [setup and deployment guide](docs/SUPABASE-LIVE.md). The live build adds real authentication, shared data, private storage and two-way voice/video calling. It requires your Supabase project and a call relay before it can be used. Root Vercel deployments now select this live build; the prototype commands below remain available separately. Payments are not connected.
+**Live Supabase integration:** [setup and deployment guide](docs/SUPABASE-LIVE.md). The live build adds real authentication, shared data, private storage and two-way voice/video calling. It requires your Supabase project and a call relay before it can be used. Root Vercel deployments now select this live build; the prototype commands below remain available separately. Payments go through Paystack once its keys, functions and webhook are set up (guide section 4).
 
 ## Start locally
 

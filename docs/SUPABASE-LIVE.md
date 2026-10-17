@@ -75,6 +75,41 @@ Keep JWT verification enabled. The function also validates the current user and 
 
 Customers open **Messages**, choose a professional, then tap the phone or camera button. Professionals use the same buttons in their customer conversations. Both participants must be signed in with the site open. Incoming calls show a dialog on any page. This version has no background push notifications, closed-browser ringing, call recording or PSTN/telephone dialing. Browsers may pause background tabs; a visible tab is the reliable path. Permission prompts are shown only when initiating or accepting a call. Decline, hang-up, logout and page exit release camera/microphone tracks. A reload does not resume an answered call on a different device.
 
+## 4. Payments with Paystack
+
+Customers pay the agreed quote on Paystack's own checkout page, by mobile money or card. The money lands in Siesie's Paystack balance, and the booking shows as paid only after the server checks the charge with Paystack. When the customer confirms the work, or the inspection window closes with no dispute, the worker is sent the quote less the commission by Paystack Transfer to their mobile money wallet or bank account. The commission is set in Admin → Settings (10% by default) and fixed on each quote when the worker sends it. It stays in the balance.
+
+Siesie pays Paystack's fees out of its commission: customers pay exactly the quote and workers get exactly the quote less commission. At the time of writing Paystack charges 1.95% per local payment, GHS 1 per mobile money transfer and GHS 8 per bank transfer, so a 10% commission leaves Siesie about 8%. Check Paystack's current Ghana pricing.
+
+- A payment that arrives for a booking that can no longer take it (withdrawn, already paid, wrong amount) is refunded in full automatically.
+- A failed or reversed transfer alerts admins and waits in Admin → Payouts for a retry once the cause is fixed. Each retry uses a new transfer reference.
+- A transfer that got no answer from Paystack is checked with Paystack before anything is sent again, so a timeout cannot pay a worker twice.
+- An admin's dispute decision refunds the customer's share through Paystack and sends the worker's share, less commission.
+
+### Paystack account
+
+- Paystack only lets **registered businesses** keep a balance and send transfers. Starter accounts cannot.
+- In Settings → Preferences, set the payout schedule to **Settled to Balance** (manual payouts). With automatic payouts Paystack settles everything to your bank the next day, and you must top up the balance before workers can be paid. Paystack's Ghana terms have required a transfer from the balance at least every 90 days; confirm the current rule with Paystack.
+- Turn off **OTP for transfers**, or Paystack holds every payout waiting for a code. Siesie marks those payouts failed with an explanation.
+- Start with **test mode** keys. Only the secret key is used. The public key (`pk_…`) is not needed because checkout happens on Paystack's page.
+
+### Setup
+
+1. In the SQL editor, run `supabase/migrations/202610170001_paystack.sql` once. On the existing project run only this file, not `install.sql`.
+2. In Edge Function secrets, add `PAYSTACK_SECRET_KEY` with your `sk_test_…` key. `SITE_ORIGINS` is already set for calls and is reused. Never put the secret key in a `VITE_` variable, a chat or the repository.
+3. Deploy the functions:
+
+```powershell
+supabase functions deploy paystack-checkout
+supabase functions deploy paystack-webhook --no-verify-jwt
+supabase functions deploy paystack-payouts --no-verify-jwt
+```
+
+4. In Paystack → Settings → API Keys & Webhooks, set the webhook URL to `https://hecxnbeeaziwjpixvwtx.supabase.co/functions/v1/paystack-webhook`.
+5. Run `supabase/cron.sql` in the SQL editor. It schedules the payout run every 10 minutes and shows a generated secret. Save that value as the Edge Function secret `SIESIE_CRON_SECRET`.
+6. Test end to end with Paystack's test cards and test mobile money numbers: pay, confirm the work, and check the transfer in Paystack's test dashboard.
+7. To go live, replace `PAYSTACK_SECRET_KEY` with the `sk_live_…` key and set the same webhook URL under the live keys. The frontend does not change.
+
 ## Security and data behavior
 
 - Default-deny RLS and revoked direct browser table privileges; explicit security-definer RPCs enforce authenticated roles, ownership, membership and state transitions. Function search paths are fixed.
@@ -82,19 +117,21 @@ Customers open **Messages**, choose a professional, then tap the phone or camera
 - Live job, document and profile data stay in memory. Only the Supabase login session is persisted by the Auth SDK; demo state never authorizes a live request.
 - Chat and call signaling are polled while the app is open. No Realtime publication needs to be enabled. Active call signals are deleted when a participant ends the call or either participant next observes expiry. For retention, schedule a privileged database job to clear signals for expired calls that neither party reopens, and purge old call metadata under your retention policy.
 - One device can own each side of an answered call. Other tabs cannot send signals, obtain relay credentials or end that device's call.
-- Client-supplied payment success is rejected. Live checkout, payouts and refunds are disabled until a payment provider, server verification/webhooks and financial reconciliation are implemented. The live build must not be described as a complete paid marketplace yet. Automatic inspection-window payouts are also not enabled.
+- Browsers never record a payment, payout or refund. Only Edge Functions holding the service-role key can call `siesie_payments`, and they act only on Paystack's answers: webhooks must carry a valid signature, every charge is re-verified with Paystack, and each update applies once however often Paystack retries. Checkout and transfer tables are not readable from the browser.
+- Payouts and refunds rely on Paystack's records for reconciliation. Compare Paystack's transactions and transfers with Admin → Transactions regularly.
 
 ## Verification
 
 ```powershell
 npm run typecheck
 npm run test:supabase
+npm run test:payments
 npm run test:live
 npm test
 npm run test:vercel
 ```
 
-`test:supabase` runs real PostgreSQL migrations and permission/state checks in PGlite. `test:live` builds the live frontend using explicitly fake test connection values in `test-results/live-build`, mocks Supabase HTTP auth, and routes RPCs to that local database. It checks independent account sessions, shared messages, both call directions, real browser audio/video packets on loopback, media controls, decline and cleanup. Its test-only ICE override does not enter the shipped app. Never deploy `test-results/live-build`.
+`test:supabase` runs real PostgreSQL migrations and permission/state checks in PGlite. `test:payments` runs the payment Edge Functions' shared logic against those migrations and a scripted fake Paystack: checkout, webhook signatures, replays, refunds, payouts, failed and unanswered transfers, expired inspection windows and dispute splits. `test:live` builds the live frontend using explicitly fake test connection values in `test-results/live-build`, mocks Supabase HTTP auth, and routes RPCs to that local database. It checks independent account sessions, shared messages, the Paystack checkout round trip, both call directions, real browser audio/video packets on loopback, media controls, decline and cleanup. Its test-only ICE override does not enter the shipped app. Never deploy `test-results/live-build`.
 
 After connecting the real services, test sign-up + email confirmation + password reset, pro registration + document approval, shared bookings/messages, and calls in both directions on two devices on different networks. Check decline, denied permissions, logout during a call, offline recovery, protected deep links, and cross-account private-file access. Check relay credentials are issued and calls use a relay candidate. These deployment checks remain outstanding.
 

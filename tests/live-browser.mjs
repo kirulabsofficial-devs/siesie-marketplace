@@ -3,17 +3,37 @@ import { readFile, readdir, mkdir } from 'node:fs/promises';
 import { PGlite } from '@electric-sql/pglite';
 import { chromium } from 'playwright';
 import { build, preview } from 'vite';
+import { applyCharge, processPayouts, startCheckout } from '../supabase/functions/_shared/payments.ts';
 
 // Isolated integration test: real PostgreSQL migrations, real UI and browser
 // WebRTC; mocked Supabase HTTP auth/storage and local ICE instead of paid TURN.
-// This does not verify deployed Supabase, email delivery or cross-network TURN.
+// The payment Edge Functions run their real shared logic against a fake Paystack.
+// This does not verify deployed Supabase, Paystack, email delivery or cross-network TURN.
 process.env.VITE_SUPABASE_URL = 'https://siesie-test.supabase.co';
 process.env.VITE_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_test_only';
 const db = new PGlite();
 const customer = '10000000-0000-4000-8000-000000000001';
 const worker = '20000000-0000-4000-8000-000000000001';
 const users = new Map();
-let server, browser, lastPage;
+let server, browser, lastPage, base;
+// Fake Paystack: a checkout counts as paid once the browser has visited its page.
+const paidCheckouts = new Map();
+const paystack = async (method, path, body) => {
+  const route = path.split('?')[0];
+  if (method === 'POST' && route === '/transaction/initialize') { paidCheckouts.set(body.reference, { amount: body.amount, callback: body.callback_url, paid: false }); return { authorization_url: 'https://checkout.paystack.com/' + body.reference }; }
+  if (method === 'GET' && route.startsWith('/transaction/verify/')) {
+    const reference = route.split('/').at(-1), checkout = paidCheckouts.get(reference);
+    return { reference, status: checkout?.paid ? 'success' : 'abandoned', amount: checkout?.amount ?? 0, currency: 'GHS', channel: 'mobile_money', authorization: { bank: 'MTN', last4: '4567' }, paid_at: new Date().toISOString() };
+  }
+  if (method === 'GET' && route === '/bank') return [{ name: 'MTN Mobile Money', code: 'MTN' }];
+  if (method === 'POST' && route === '/transferrecipient') return { recipient_code: 'RCP_test' };
+  if (method === 'POST' && route === '/transfer') return { reference: body.reference, status: 'success', transfer_code: 'TRF_test' };
+  throw new Error('Unexpected Paystack call ' + method + ' ' + path);
+};
+const payments = {
+  paystack,
+  rpc: async (name, input) => db.transaction(async tx => { await tx.exec('set local role service_role'); return (await tx.query('select public.siesie_payments($1,$2::jsonb) as result', [name, JSON.stringify(input)])).rows[0].result; }),
+};
 const errors=[];
 async function as(id, sql, params=[]) {
   return db.transaction(async tx => {
@@ -71,12 +91,25 @@ async function context() {
       if(url.pathname==='/auth/v1/user') return users.has(id) ? respond(users.get(id)) : respond({msg:'Invalid token'},401);
       if(url.pathname==='/auth/v1/logout') return respond({});
       if(url.pathname.startsWith('/rest/v1/rpc/')) return respond(await rpc(id,url.pathname.split('/').at(-1),body));
+      if(url.pathname==='/functions/v1/paystack-checkout') {
+        if(!users.has(id)) return respond({error:'Log in to pay.'},401);
+        if(typeof body.verify==='string') return respond(await applyCharge(payments,body.verify));
+        return respond({url:(await startCheckout(payments,{jobId:body.jobId,userId:id,email:users.get(id).email,origin:base})).url});
+      }
+      if(url.pathname==='/functions/v1/paystack-payouts') { await processPayouts(payments); return respond({ok:true}); }
       if(url.pathname==='/functions/v1/call-ice') {
         await rpc(id,'siesie_call',{action:'relay',input:body});
         return respond({iceServers:[{urls:'stun:127.0.0.1:9'}]});
       }
       throw new Error('Unexpected API route '+url.pathname);
-    } catch(error) { if(process.env.DEBUG_TEST) console.error('API test error',url.pathname,error.message); return respond({message:error.message,code:error.code || 'TEST'},400); }
+    } catch(error) { if(process.env.DEBUG_TEST) console.error('API test error',url.pathname,error.message); return respond({message:error.message,error:error.message,code:error.code || 'TEST'},400); }
+  });
+  // Paying on Paystack's page: mark it paid and send the browser back, as Paystack does.
+  await ctx.route('https://checkout.paystack.com/**',async route => {
+    const checkout=paidCheckouts.get(new URL(route.request().url()).pathname.slice(1));
+    if(!checkout) return route.fulfill({status:404,body:'Unknown checkout'});
+    checkout.paid=true;
+    return route.fulfill({status:302,headers:{location:checkout.callback}});
   });
   return ctx;
 }
@@ -100,7 +133,7 @@ try {
   await mkdir('test-results',{recursive:true});
   await build({mode:'live',logLevel:'error',build:{outDir:'test-results/live-build',emptyOutDir:true}});
   server=await preview({mode:'live',logLevel:'error',build:{outDir:'test-results/live-build'},preview:{port:0,host:'127.0.0.1'}});
-  const base=server.resolvedUrls.local[0].replace(/\/$/,'');
+  base=server.resolvedUrls.local[0].replace(/\/$/,'');
   browser=await chromium.launch({headless:true,args:['--use-fake-ui-for-media-stream','--use-fake-device-for-media-stream','--autoplay-policy=no-user-gesture-required']});
   const a=await context(),b=await context();
   const customerPage=await a.newPage(),proPage=await b.newPage();
@@ -140,9 +173,21 @@ try {
   assert.equal((await proPage.locator('body').innerText()).includes('14 Private Test Street'),false);
   await customerPage.reload();
   await customerPage.getByRole('button',{name:/^Pay /}).click();
-  await customerPage.getByRole('heading',{name:'Payments are not available yet',exact:true}).waitFor();
+  await customerPage.getByRole('button',{name:'Continue to Paystack',exact:true}).waitFor();
+  await customerPage.screenshot({path:'test-results/live-paystack-dialog.png'});
   assert.equal((await db.query('select status from public.siesie_jobs where id=$1',[jobId])).rows[0].status,'quoted');
-  console.log('PASS Booking and quote flow syncs across accounts; addresses stay private and live checkout cannot fake payment');
+  console.log('PASS Booking and quote flow syncs across accounts; addresses stay private and checkout starts only on Paystack');
+  await customerPage.getByRole('button',{name:'Continue to Paystack',exact:true}).click();
+  await customerPage.waitForURL(new RegExp(`/jobs/${jobId}\\?payment=sie_[0-9a-f]{32}$`));
+  await customerPage.getByRole('heading',{name:'Test is doing the job',exact:true}).waitFor();
+  await customerPage.waitForURL(base+`/jobs/${jobId}`);
+  await customerPage.getByText('Payment received. Siesie is holding it until you confirm the work.').waitFor();
+  await customerPage.screenshot({path:'test-results/live-paystack-paid.png'});
+  const paidJob=(await db.query('select status,data from public.siesie_jobs where id=$1',[jobId])).rows[0];
+  assert.equal(paidJob.status,'in_progress'); assert.equal(paidJob.data.payment.amount,350); assert.equal(paidJob.data.payment.payer,'MoMo ••• 567');
+  await proPage.goto(base+`/work/jobs/${jobId}`);
+  await proPage.getByText('14 Private Test Street').first().waitFor();
+  console.log('PASS Paying on Paystack returns to the job, which shows as paid only after the server verifies it; the address is then shared');
   await customerPage.goto(base+`/messages/${conversation}`);
   await proPage.goto(base+'/work/jobs');
   await customerPage.getByRole('button',{name:'Voice call Test Pro',exact:true}).click();

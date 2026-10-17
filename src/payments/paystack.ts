@@ -1,18 +1,17 @@
 /**
- * Payment seam. The demo simulates Paystack; production swaps these two functions for
- * calls to our own backend, which talks to Paystack with the secret key.
+ * Payment seam. The test builds simulate Paystack; the live build calls the payment
+ * Edge Functions in supabase/functions, which hold the secret key.
  *
  * Collection (customer pays):
- *   1. Frontend: POST /api/payments/initialize { jobId }            -> { accessCode, reference }
- *      Server calls Paystack POST /transaction/initialize with amount in pesewas,
- *      currency "GHS", channels ["mobile_money", "card"], metadata { jobId }.
- *   2. Frontend: new PaystackPop().resumeTransaction(accessCode)   (@paystack/inline-js)
- *   3. Server: webhook `charge.success` -> verify signature + amount -> job.status = in_progress.
- *      The frontend only polls GET /api/jobs/:id; it never marks a job paid itself.
+ *   1. startLiveCheckout -> paystack-checkout initializes the transaction in pesewas and
+ *      returns Paystack's checkout page, which takes mobile money or a card.
+ *   2. Paystack sends the customer back to /jobs/:id?payment=<reference>. The job page
+ *      asks paystack-checkout to verify that reference; the `charge.success` webhook does
+ *      the same. Either way the server re-verifies with Paystack before marking it paid.
  *
  * Payout (worker gets paid):
- *   Server: Paystack POST /transferrecipient (type "mobile_money" or "ghipss") once per worker,
- *   then POST /transfer { amount: net, recipient, reference } when an admin releases.
+ *   paystack-payouts runs every 10 minutes and straight after a customer confirms. It
+ *   transfers the payout's net amount; the commission stays in Siesie's Paystack balance.
  *   Webhooks `transfer.success` / `transfer.failed` / `transfer.reversed` update payout.status.
  *
  * Paystack has no native escrow. "Held" is a state in our database, not in Paystack.
@@ -21,6 +20,7 @@ import type { MomoNetwork } from "../data/types";
 import { MOMO_NETWORKS } from "../config";
 import { reference } from "../lib/format";
 import { LIVE_BACKEND } from "../data/runtime";
+import { requireSupabase } from "../data/supabase";
 
 export const TEST_MODE = !LIVE_BACKEND;
 
@@ -64,3 +64,37 @@ export async function simulateTransfer(): Promise<string> {
   await wait(900);
   return reference("TRF");
 }
+
+// ── Live ────────────────────────────────────────────────────────────────────
+
+async function invoke<T>(name: string, body: Record<string, unknown>, fallback: string): Promise<T> {
+  const { data, error } = await requireSupabase().functions.invoke(name, { body });
+  if (error) {
+    const reply = await (error as { context?: Response }).context?.json?.().catch(() => null);
+    throw new Error(typeof reply?.error === "string" ? reply.error : fallback);
+  }
+  return data as T;
+}
+
+/** Sends the customer to Paystack's checkout page. Paystack brings them back to the job. */
+export async function startLiveCheckout(jobId: string) {
+  const { url } = await invoke<{ url: string }>("paystack-checkout", { jobId }, "Payment couldn't start. No money was taken. Please try again.");
+  if (!/^https:\/\/([a-z0-9-]+\.)*paystack\.(com|co)\//.test(url)) throw new Error("Payment couldn't start. No money was taken. Please try again.");
+  window.location.assign(url);
+}
+
+/** Asks the server to check a checkout with Paystack. Returns "recorded", "handled", "not_paid", "refund" or "unknown". */
+export async function verifyLiveCheckout(reference: string) {
+  const { outcome } = await invoke<{ outcome: string }>("paystack-checkout", { verify: reference }, "We couldn't check the payment yet.");
+  return outcome;
+}
+
+/** Nudges the payout queue. Best effort: the scheduled run catches anything this misses. */
+export function triggerLivePayouts() {
+  return invoke("paystack-payouts", { action: "process" }, "").then(() => undefined, () => undefined);
+}
+
+export const retryLivePayout = (jobId: string) => invoke("paystack-payouts", { action: "retry", jobId }, "The payout couldn't be retried. Please try again.");
+
+export const resolveLiveDispute = (jobId: string, toWorker: number, note: string) =>
+  invoke("paystack-payouts", { action: "resolve", jobId, toWorker, note }, "We couldn't confirm the decision was recorded. Refresh to check before trying again.");

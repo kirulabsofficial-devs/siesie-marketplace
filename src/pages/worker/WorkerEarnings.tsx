@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router";
 import { ArrowDownToLine, Clock3, Wallet } from "lucide-react";
 import { jobCommissionPct, useDb } from "../../data/store";
+import type { Payout } from "../../data/types";
 import { EmptyState, Field, PageHeader, StatCard, Tile } from "../../components/ui";
 import { commissionOn, date, money } from "../../lib/format";
 import { useTitle } from "../../lib/hooks";
@@ -14,10 +15,11 @@ export function WorkerEarnings() {
 
   const jobs = db.jobs.filter((j) => j.workerId === db.session?.userId && j.payment);
   const sent = jobs.filter((j) => j.payout?.status === "sent" && (period === "all" || Date.parse(j.payout.sentAt!) >= Date.now() - Number(period) * 86400_000));
-  const queued = jobs.filter((j) => j.payout?.status === "queued");
+  // Live payouts can also be in flight with Paystack, or waiting on an admin retry.
+  const queued = jobs.filter((j) => j.payout && j.payout.status !== "sent");
   const pending = jobs.filter((j) => ["in_progress", "completed"].includes(j.status));
   const records = [...jobs]
-    .filter((j) => j.payout && (j.payout.status === "queued" || sent.includes(j)))
+    .filter((j) => j.payout && (j.payout.status !== "sent" || sent.includes(j)))
     .sort((a, b) => (b.payout!.sentAt ?? b.payout!.queuedAt).localeCompare(a.payout!.sentAt ?? a.payout!.queuedAt));
 
   const ref = useReveal<HTMLDivElement>([period, records.length]);
@@ -73,7 +75,7 @@ export function WorkerEarnings() {
                   <p
                     className={cnStatus(j.payout!.status)}
                   >
-                    {j.payout!.status === "sent" ? "Paid out" : "Queued"}
+                    {PAYOUT_LABELS[j.payout!.status]}
                   </p>
                   <p className="mt-1 text-xs text-ink-soft">Fee {money(j.payout!.commission)}</p>
                 </div>
@@ -88,7 +90,9 @@ export function WorkerEarnings() {
   );
 }
 
-function cnStatus(status: "sent" | "queued") {
+const PAYOUT_LABELS: Record<Payout["status"], string> = { queued: "Queued", sending: "Sending", sent: "Paid out", failed: "Delayed" };
+
+function cnStatus(status: Payout["status"]) {
   return status === "sent"
     ? "mt-1 inline-flex rounded-full bg-celadon-wash px-2 py-0.5 text-xs font-bold text-emerald-700"
     : "mt-1 inline-flex rounded-full bg-ochre-wash px-2 py-0.5 text-xs font-bold text-ochre-deep";

@@ -23,7 +23,7 @@
 - Set up Cloudflare TURN and save its key ID and API token in Supabase Edge Function secrets. The user confirmed TURN is not set up yet. No subscription or paid service has been purchased.
 - Reconcile CLI migration history before any future `supabase db push`; the existing schema was installed manually and must not be recreated.
 - On two actual devices/networks, verify signup/confirmation/reset, verification image access, booking/quote updates, messages and relay-based voice/video calls. These remote checks are not yet complete.
-- Real payment collection, verified payment webhooks, payouts, refunds and reconciliation are not implemented. Live checkout is disabled; deployment should be described as accounts/bookings/chat/calling, not a complete paid marketplace.
+- Payments (added 17 October 2026): run `supabase/migrations/202610170001_paystack.sql`, set `PAYSTACK_SECRET_KEY`, deploy the three payment functions, set the Paystack webhook URL and run `supabase/cron.sql`. See section 4 of SUPABASE-LIVE.md. The integration is tested locally against a fake Paystack only; run a full test-mode payment, payout and refund before switching to live keys.
 
 ## Recovery
 
@@ -31,4 +31,4 @@ The SQL editor bundle wraps all schema installation in a transaction. If it fail
 
 Keep the previous Vercel deployment available. Roll back the frontend if account isolation fails, authentication cannot complete, or booking/message/call actions consistently error. Do not route signed-in users into demo accounts as a fallback. If a previous deployment is a demo, clearly identify it as a prototype with separate browser-local data.
 
-Monitor Supabase Auth/API/function errors during first real-device tests. TURN or calling failures should not prevent messages or bookings. Camera and microphone tracks must stop on hang-up, decline, logout and leaving the page. Payments stay disabled until their separate server integration is verified.
+Monitor Supabase Auth/API/function errors during first real-device tests. TURN or calling failures should not prevent messages or bookings. Camera and microphone tracks must stop on hang-up, decline, logout and leaving the page. Keep Paystack on test keys until a test-mode payment, payout and refund have been checked in the Paystack dashboard. If live payouts misbehave, unschedule the payout job (`select cron.unschedule('siesie-payouts');`) and remove `PAYSTACK_SECRET_KEY`; checkout then fails safely with no money taken.

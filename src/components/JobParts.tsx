@@ -72,7 +72,7 @@ export function Receipt({ job, perspective }: { job: Job; perspective: "customer
             <DefinitionRow term={`Fee`}>
               <span className="figure">− {money(job.payout.commission)}</span>
             </DefinitionRow>
-            <DefinitionRow term={job.payout.status === "sent" ? "Paid out" : "Payout queued"}>
+            <DefinitionRow term={{ queued: "Payout queued", sending: "Payout sending", sent: "Paid out", failed: "Payout delayed" }[job.payout.status]}>
               <span className="figure">{money(job.payout.net)}</span>
             </DefinitionRow>
             <DefinitionRow term="To">{job.payout.destination}</DefinitionRow>
@@ -94,6 +94,9 @@ export function Receipt({ job, perspective }: { job: Job; perspective: "customer
             <span className="figure">{money(job.refund.amount)}</span>
           </DefinitionRow>
           <DefinitionRow term="Refund date">{dateTime(job.refund.at)}</DefinitionRow>
+          {job.refund.status && job.refund.status !== "processed" && (
+            <DefinitionRow term="Refund status">{job.refund.status === "failed" || job.refund.status === "check" ? "Being checked by Siesie" : "On its way"}</DefinitionRow>
+          )}
           {perspective !== "worker" && <DefinitionRow term="Refund destination">{job.refund.destination}</DefinitionRow>}
           <DefinitionRow term="Refund reference"><span className="figure text-sm">{job.refund.reference}</span></DefinitionRow>
           </>

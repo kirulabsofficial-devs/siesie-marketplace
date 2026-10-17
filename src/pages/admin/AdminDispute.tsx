@@ -32,9 +32,13 @@ export function AdminDispute() {
   const customer = findCustomer(db, job.customerId);
   const worker = findWorker(db, job.workerId);
   async function resolve() {
-    if (!job || busy || !valid || LIVE_BACKEND) return;
+    if (!job || busy || !valid) return;
     setBusy(true);
     try {
+      if (LIVE_BACKEND) {
+        if (await run(() => resolveDispute(job.id, workerGross, note, ""), "Decision recorded. Paystack is moving the money.")) setReviewing(false);
+        return;
+      }
       const ref = workerGross > 0 ? await simulateTransfer() : "";
       if (await run(() => resolveDispute(job.id, workerGross, note, ref), "Test resolution recorded.")) setReviewing(false);
     } catch (e) { toast(e instanceof Error ? e.message : "Unable to record this decision.", "error"); }
@@ -47,17 +51,17 @@ export function AdminDispute() {
       <div className="flex min-w-0 flex-col gap-5"><DisputeEvidence job={job} /><JobDetails job={job} showAddress /><Timeline job={job} /></div>
       <aside className="flex min-w-0 flex-col gap-5">
         <Tile className="p-5"><h2 className="font-bold">Contact both parties</h2><a className="mt-3 block text-cobalt underline" href={`tel:${customer?.phone}`}>{customer?.name} · customer</a><a className="mt-2 block text-cobalt underline" href={`tel:${worker?.phone}`}>{worker?.name} · worker</a></Tile>
-        {job.dispute!.resolution ? <Tile className="p-5"><h2 className="text-lg font-bold">Decision recorded</h2><p className="mt-3 whitespace-pre-line">{job.dispute!.resolution.note}</p><dl className="mt-4 divide-y divide-grout"><DefinitionRow term="Customer refund">{money(job.dispute!.resolution.toCustomer)}</DefinitionRow><DefinitionRow term="Worker allocation">{money(job.dispute!.resolution.toWorker)}</DefinitionRow></dl></Tile> : <Tile className="p-5"><h2 className="text-xl font-bold">Resolve this dispute</h2><p className="mt-2 text-sm text-ink-soft">{LIVE_BACKEND ? "Refunds and payouts are not available until payment processing is connected." : "Test mode. Refunds and transfers are simulated."}</p><form className="mt-5 flex flex-col gap-4" onSubmit={(e) => { e.preventDefault(); if (valid && !LIVE_BACKEND) setReviewing(true); }}>
+        {job.dispute!.resolution ? <Tile className="p-5"><h2 className="text-lg font-bold">Decision recorded</h2><p className="mt-3 whitespace-pre-line">{job.dispute!.resolution.note}</p><dl className="mt-4 divide-y divide-grout"><DefinitionRow term="Customer refund">{money(job.dispute!.resolution.toCustomer)}</DefinitionRow><DefinitionRow term="Worker allocation">{money(job.dispute!.resolution.toWorker)}</DefinitionRow></dl></Tile> : <Tile className="p-5"><h2 className="text-xl font-bold">Resolve this dispute</h2><p className="mt-2 text-sm text-ink-soft">{LIVE_BACKEND ? "Refunds go back to the customer's original payment through Paystack. The worker's share, less commission, is sent automatically." : "Test mode. Refunds and transfers are simulated."}</p><form className="mt-5 flex flex-col gap-4" onSubmit={(e) => { e.preventDefault(); if (valid) setReviewing(true); }}>
           <Field label="Decision">{(p) => <select {...p} className="field" value={outcome} onChange={(e) => setOutcome(e.target.value)}><option value="refund">Full refund to customer</option><option value="release">Full release to worker</option><option value="split">Split payment</option></select>}</Field>
           {outcome === "split" && <Field label="Worker allocation before fee (GH₵)">{(p) => <input {...p} className="field figure" type="number" min="0.01" max={total - 0.01} step="0.01" value={split} onChange={(e) => setSplit(e.target.value)} required />}</Field>}
           <Field label="Reason for the decision" hint="Shared with both parties. Explain the evidence and allocation.">{(p) => <textarea {...p} className="field" minLength={15} maxLength={1200} value={note} onChange={(e) => setNote(e.target.value)} required />}</Field>
-          {allocation}<Button type="submit" disabled={!valid || LIVE_BACKEND}>Review decision</Button>
+          {allocation}<Button type="submit" disabled={!valid}>Review decision</Button>
         </form></Tile>}
         <Receipt job={job} perspective="admin" />
       </aside>
     </div>
     <Dialog open={reviewing} onClose={() => { if (!busy) setReviewing(false); }} title="Confirm dispute decision">
-      <p className="mb-3 whitespace-pre-line">{note}</p>{allocation}<p className="mt-4 text-sm text-ink-soft">This closes the case and records the simulated refund and payout.</p><Button className="mt-5" busy={busy} onClick={resolve}>Record test resolution</Button>
+      <p className="mb-3 whitespace-pre-line">{note}</p>{allocation}<p className="mt-4 text-sm text-ink-soft">{LIVE_BACKEND ? "This closes the case. Paystack refunds the customer and sends the worker's share. Real money moves and you can't undo it." : "This closes the case and records the simulated refund and payout."}</p><Button className="mt-5" busy={busy} onClick={resolve}>{LIVE_BACKEND ? "Confirm and move the money" : "Record test resolution"}</Button>
     </Dialog>
   </>;
 }

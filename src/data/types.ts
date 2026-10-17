@@ -90,9 +90,11 @@ export interface Payout {
   commission: number;
   net: number;
   destination: string;
-  status: "queued" | "sent";
+  /** Live payouts pass through "sending" while Paystack works on the transfer, or "failed" until an admin retries. */
+  status: "queued" | "sending" | "sent" | "failed";
   queuedAt: string;
   sentAt?: string;
+  failure?: string;
 }
 
 export interface Refund {
@@ -100,6 +102,8 @@ export interface Refund {
   amount: number;
   destination: string;
   at: string;
+  /** Paystack's refund progress. Test-mode refunds have none. */
+  status?: "pending" | "processing" | "processed" | "failed" | "check";
 }
 
 export interface Dispute {

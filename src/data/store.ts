@@ -28,6 +28,7 @@ import { validateWorkerProfile } from "../lib/validation";
 import { LIVE_BACKEND } from "./runtime";
 import { emptyLiveDb, liveSnapshot, liveAction, clearLiveImages } from "./supabaseStore";
 import { requireSupabase } from "./supabase";
+import { resolveLiveDispute, retryLivePayout, triggerLivePayouts } from "../payments/paystack";
 
 const KEY = "siesie.db";
 
@@ -451,7 +452,8 @@ export function recordPayment(jobId: string, payment: Omit<Payment, "paidAt">) {
 
 /** POST /jobs/:id/confirm */
 export function confirmCompletion(jobId: string) {
-  if (LIVE_BACKEND) return remoteAction("confirm", { jobId });
+  // The payout is sent straight away; the scheduled run retries if this nudge fails.
+  if (LIVE_BACKEND) return remoteAction("confirm", { jobId }).then(() => { void triggerLivePayouts().then(refreshSession); });
   commit((d) => {
     const job = mustJob(d, jobId);
     jobActor(d, job, "customer");
@@ -652,11 +654,11 @@ export function resubmitVerification(workerId: string, ghanaCardNumber: string, 
 }
 
 /**
- * POST /admin/payouts/:jobId/release — calls Paystack Transfers on the server.
- * MVP scope: an admin triggers every release by hand.
+ * Test builds only: an admin records each release by hand. Live payouts are sent
+ * automatically; admins only retry failed ones (see retryPayout).
  */
 export function releasePayout(jobId: string, transferRef: string) {
-  if (LIVE_BACKEND) throw new Error("Live payouts require the payment provider to confirm the transfer.");
+  if (LIVE_BACKEND) throw new Error("Live payouts are sent automatically through Paystack.");
   commit((d) => {
     requireActor(d, "admin");
     const job = mustJob(d, jobId);
@@ -672,9 +674,20 @@ export function releasePayout(jobId: string, transferRef: string) {
   });
 }
 
-/** POST /admin/disputes/:jobId/resolve */
-export function resolveDispute(jobId: string, toWorker: number, note: string, transferRef: string) {
-  if (LIVE_BACKEND) throw new Error("Live dispute settlement requires the payment provider integration.");
+/** Live: sends a failed payout back to Paystack under a new transfer reference. */
+export async function retryPayout(jobId: string) {
+  if (!LIVE_BACKEND) throw new Error("Test payouts are released by hand.");
+  await retryLivePayout(jobId);
+  await refreshSession();
+}
+
+/** POST /admin/disputes/:jobId/resolve. Live: refunds and payouts go through Paystack. */
+export async function resolveDispute(jobId: string, toWorker: number, note: string, transferRef: string) {
+  if (LIVE_BACKEND) {
+    await resolveLiveDispute(jobId, round2(toWorker), note.trim());
+    await refreshSession();
+    return;
+  }
   commit((d) => {
     requireActor(d, "admin");
     const job = mustJob(d, jobId);

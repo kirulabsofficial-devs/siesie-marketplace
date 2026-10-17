@@ -2,3 +2,14 @@ project_id = "siesie-marketplace"
 
 [functions.call-ice]
 verify_jwt = true
+
+# Payments. The webhook and payouts functions check Paystack's signature, the
+# cron secret or the user's session themselves, so the gateway lets them through.
+[functions.paystack-checkout]
+verify_jwt = true
+
+[functions.paystack-webhook]
+verify_jwt = false
+
+[functions.paystack-payouts]
+verify_jwt = false

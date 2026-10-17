@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { CreditCard, Smartphone } from "lucide-react";
 import type { MomoNetwork } from "../data/types";
 import { BRAND, MOMO_NETWORKS } from "../config";
-import { detectNetwork, isValidGhanaMobile, simulateCharge, TEST_MODE, type ChargeResult } from "../payments/paystack";
+import { detectNetwork, isValidGhanaMobile, simulateCharge, startLiveCheckout, TEST_MODE, type ChargeResult } from "../payments/paystack";
 import { firstName, money, phone as fmtPhone } from "../lib/format";
 import { cn } from "../lib/cn";
 import { Button, Dialog, Field } from "./ui";
@@ -12,6 +12,7 @@ type Method = MomoNetwork | "card";
 type Step = "choose" | "approve" | "done";
 
 export function PaystackCheckout({
+  jobId,
   open,
   onClose,
   amount,
@@ -20,6 +21,7 @@ export function PaystackCheckout({
   defaultPhone,
   onPaid,
 }: {
+  jobId: string;
   open: boolean;
   onClose: () => void;
   amount: number;
@@ -35,6 +37,7 @@ export function PaystackCheckout({
   const [busy, setBusy] = useState<"approve" | "decline" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [settled, setSettled] = useState(false);
+  const [leaving, setLeaving] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -42,6 +45,7 @@ export function PaystackCheckout({
       setError(null);
       setBusy(null);
       setSettled(false);
+      setLeaving(false);
     }
   }, [open]);
 
@@ -76,10 +80,38 @@ export function PaystackCheckout({
     { id: "card", label: "Visa or Mastercard" },
   ];
 
-  if (!TEST_MODE) return <Dialog open={open} onClose={onClose} title="Payments are not available yet">
-    <p>Online checkout is being set up. You can still discuss the details with your pro and keep your quote here.</p>
-    <Button className="mt-5" onClick={onClose}>Back to booking</Button>
-  </Dialog>;
+  async function goToPaystack() {
+    setLeaving(true);
+    setError(null);
+    try {
+      await startLiveCheckout(jobId);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Payment couldn't start. No money was taken.");
+      setLeaving(false);
+    }
+  }
+
+  // Live: Paystack's own checkout page takes the money, then sends the customer back to the job.
+  if (!TEST_MODE) return (
+    <Dialog open={open} onClose={leaving ? () => {} : onClose} title={`Pay ${money(amount)}`}>
+      <div className="flex flex-col gap-5">
+        <div className="rounded-[var(--radius-tile)] bg-tile-dim p-4">
+          <p className="text-sm text-ink-soft">{jobTitle}</p>
+          <p className="figure mt-1 text-2xl font-bold">{money(amount)}</p>
+          <p className="mt-2 text-[0.9375rem]">
+            {BRAND.name} holds this payment. {firstName(workerName)} gets it only after you confirm the job is done.
+          </p>
+        </div>
+        <p className="text-[0.9375rem] text-ink-soft">
+          You'll pay on Paystack's secure page with mobile money or a Visa or Mastercard card, then come straight back here. Your wallet PIN and card details are never entered on {BRAND.name}.
+        </p>
+        {error && <p className="rounded-[var(--radius-tile)] bg-kiln-wash p-3 font-bold text-kiln-deep">{error}</p>}
+        <Button size="lg" busy={leaving} onClick={() => void goToPaystack()}>
+          Continue to Paystack
+        </Button>
+      </div>
+    </Dialog>
+  );
 
   return (
     <Dialog open={open} onClose={busy ? () => {} : onClose} title={step === "done" ? "Payment held" : `Pay ${money(amount)}`}>

@@ -14,6 +14,7 @@
     "typecheck": "tsc --noEmit",
     "test:api": "node --test tests/api.test.mjs",
     "test:supabase": "node tests/supabase-contract.mjs",
+    "test:payments": "node tests/paystack-flow.mjs",
     "test:live": "node tests/live-browser.mjs",
     "supabase:prepare": "node scripts/prepare-supabase-install.mjs",
     "test:e2e": "npm run build && node tests/e2e.mjs",
