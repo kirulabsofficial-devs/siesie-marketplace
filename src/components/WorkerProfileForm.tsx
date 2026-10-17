@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import { useState } from "react";
 import type { Photo, Worker } from "../data/types";
 import { AREAS, BANKS, MOMO_NETWORKS, SERVICE_IDS, SERVICES, WEEKDAYS } from "../config";
@@ -86,6 +87,18 @@ export function WorkerProfileForm({ worker, onSave }: { worker?: Worker; onSave:
       <div className="mt-5 grid grid-cols-2 gap-4"><div><p className="mb-2 font-bold">Front of Ghana Card</p><PhotoPicker max={1} value={idPhotos} onChange={setIdPhotos} label="Add ID photo" /></div><div><p className="mb-2 font-bold">Your portrait</p><PhotoPicker max={1} value={selfies} onChange={setSelfies} label="Add portrait" /></div></div>
     </Tile>}
     {error && <p role="alert" className="rounded bg-kiln-wash p-4 font-bold text-kiln-deep">{error}</p>}
+    {!worker && (
+      <p className="text-xs text-ink-faint">
+        By submitting for verification, you agree to our{" "}
+        <Link to="/terms" className="font-bold text-cobalt hover:underline">
+          Terms of Service
+        </Link>{" "}
+        and{" "}
+        <Link to="/privacy" className="font-bold text-cobalt hover:underline">
+          Privacy Policy
+        </Link>.
+      </p>
+    )}
     <Button type="submit" size="lg" busy={saving} className="self-start">{worker ? "Save profile" : "Submit for verification"}</Button>
   </form>;
 }

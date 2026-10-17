@@ -20,6 +20,8 @@ import { NotFound } from "./pages/NotFound";
 import { CustomerJobs } from "./pages/customer/CustomerJobs";
 import { CustomerJob } from "./pages/customer/CustomerJob";
 import { WorkerJoin } from "./pages/worker/WorkerJoin";
+import { TermsOfService } from "./pages/TermsOfService";
+import { PrivacyPolicy } from "./pages/PrivacyPolicy";
 import { WorkerRequests } from "./pages/worker/WorkerRequests";
 import { WorkerJobs } from "./pages/worker/WorkerJobs";
 import { WorkerJob } from "./pages/worker/WorkerJob";
@@ -62,6 +64,10 @@ const router = createRouter([
       { path: "/workers/:id", element: <WorkerProfile /> },
       { path: "/login", element: <Login /> },
       { path: "/join", element: <WorkerJoin /> },
+      { path: "/terms", element: <TermsOfService /> },
+      { path: "/terms-of-service", element: <Navigate to="/terms" replace /> },
+      { path: "/privacy", element: <PrivacyPolicy /> },
+      { path: "/privacy-policy", element: <Navigate to="/privacy" replace /> },
       { path: "/messages", element: <RequireRole role="customer"><Messages /></RequireRole> },
       { path: "/messages/:id", element: <RequireRole role="customer"><Messages /></RequireRole> },
       {

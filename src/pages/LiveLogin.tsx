@@ -79,6 +79,16 @@ export function LiveLogin() {
         {mode === "login" && <button onClick={() => { setMode("forgot"); setError(""); setNotice(""); }}>Forgot your password?</button>}
         <Link to={role === "worker" ? "/login?as=customer" : "/login?as=worker&next=/join"}>{role === "worker" ? "Looking to hire? Customer accounts" : "Offering a service? Professional accounts"}</Link>
       </div>
+      <p className="mt-6 border-t border-grout pt-4 text-center text-xs text-ink-faint">
+        By continuing, you agree to our{" "}
+        <Link to="/terms" className="font-bold text-cobalt hover:underline">
+          Terms of Service
+        </Link>{" "}
+        and{" "}
+        <Link to="/privacy" className="font-bold text-cobalt hover:underline">
+          Privacy Policy
+        </Link>.
+      </p>
     </Tile>
   </div>;
 }

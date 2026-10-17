@@ -254,6 +254,16 @@ function DemoLogin() {
               <ShieldCheck className="mt-0.5 size-4 shrink-0 text-celadon" aria-hidden />
               {STATIC_PROTOTYPE ? "Use sample details. Demo accounts, bookings and messages are saved only in this browser; no real bookings or payments are made." : "Your number is only used to sign you in and to let a worker reach you about a job you booked."}
             </p>
+            <p className="mt-4 text-center text-xs text-ink-faint">
+              By continuing, you agree to our{" "}
+              <Link to="/terms" className="font-bold text-cobalt hover:underline">
+                Terms of Service
+              </Link>{" "}
+              and{" "}
+              <Link to="/privacy" className="font-bold text-cobalt hover:underline">
+                Privacy Policy
+              </Link>.
+            </p>
           </div>
         </Tile>
 

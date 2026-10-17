@@ -109,9 +109,20 @@ export function SiteFooter({
             </div>
           </div>
 
-          <p className="footer-copyright mt-10 border-t border-grout pt-6 text-xs text-ink-soft">
-            © {new Date().getFullYear()} {BRAND.name}. Accra, Tema and Kumasi{!LIVE_BACKEND && " · Payments protected by Paystack."}
-          </p>
+          <div className="footer-copyright mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-grout pt-6 text-xs text-ink-soft">
+            <p>
+              © {new Date().getFullYear()} {BRAND.name}. Accra, Tema and Kumasi{!LIVE_BACKEND && " · Payments protected by Paystack."}
+            </p>
+            <div className="flex items-center gap-4">
+              <Link to="/terms" className="hover:text-cobalt underline-offset-4 hover:underline">
+                Terms of Service
+              </Link>
+              <span aria-hidden>·</span>
+              <Link to="/privacy" className="hover:text-cobalt underline-offset-4 hover:underline">
+                Privacy Policy
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </footer>

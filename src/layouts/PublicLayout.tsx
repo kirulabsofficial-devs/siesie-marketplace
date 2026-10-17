@@ -283,6 +283,8 @@ export function PublicLayout() {
             links: [
               { label: "Find a pro", to: "/search" },
               { label: "Escrow protection", to: "/#how-payment-works" },
+              { label: "Terms of Service", to: "/terms" },
+              { label: "Privacy Policy", to: "/privacy" },
             ],
           },
         ]}
